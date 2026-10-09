@@ -1,0 +1,36 @@
+#!/bin/bash
+set -euo pipefail
+cd "${0%/*}" || exit 1
+
+CASE="$(pwd)"
+REPO="$CASE"
+while [ "$REPO" != "/" ] && [ ! -f "$REPO/openfoam-docker" ]; do
+    REPO="$(dirname "$REPO")"
+done
+CASE_REL="${CASE#"$REPO"/}"
+
+if ! command -v blockMesh >/dev/null 2>&1; then
+    if [ ! -f "$REPO/openfoam-docker" ]; then
+        echo "ERROR: OpenFOAM not in PATH and no openfoam-docker found"
+        exit 1
+    fi
+    echo "OpenFOAM not in PATH — launching via openfoam-docker …"
+    exec "$REPO/openfoam-docker" -dir="$REPO" -c "cd /home/openfoam/${CASE_REL} && ./buildMesh"
+fi
+
+rm -rf 0 constant/polyMesh processor* [1-9]* [1-9]*.*
+cp -r 0.orig 0
+
+blockMesh 2>&1 | tee log.blockMesh
+topoSet 2>&1 | tee log.topoSet
+createBaffles -overwrite 2>&1 | tee log.createBaffles
+checkMesh 2>&1 | tee log.checkMesh
+
+echo "Mesh ready. cellZones: rackLeft | sim1..sim4 | rackRight | *Fan exits | rackMid"
+echo "Baffles: floor_s2/s3/s4 (mid sims)"
+echo "Paper layout: 3 porous racks + exit fans + open overhead cold↔hot link"
+echo "Patches: tileInlet returnOutlet floorRack + room/baffle walls"
+python3 scripts/write_dummy_stl.py 2>/dev/null \
+    || python scripts/write_dummy_stl.py 2>/dev/null \
+    || python3 scripts/write_rack_stl.py 2>/dev/null \
+    || echo "(skip STL — run scripts/write_dummy_stl.py on host)"

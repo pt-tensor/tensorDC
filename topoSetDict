@@ -1,0 +1,264 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v2406                                 |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    object      topoSetDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+// Paper (Saiyad 2022 Fig. 2 / Table 2):
+//   rackLeft / rackRight — neighbouring real-server racks (porous, 10 kW)
+//   sim1–sim4 — mid server simulators (porous, 2500 W each)
+// Floors between mid sims only (baffles); neighbours are continuous columns.
+
+actions
+(
+    {
+        name    rackLeftCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 0 0) (1.6 0.645 1.76);
+    }
+    {
+        name    rackLeft;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     rackLeftCells;
+    }
+
+    {
+        name    rackRightCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 1.175 0) (1.6 1.82 1.76);
+    }
+    {
+        name    rackRight;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     rackRightCells;
+    }
+
+    {
+        name    sim1Cells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 0.645 0.0) (1.6 1.175 0.44);
+    }
+    {
+        name    sim1;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim1Cells;
+    }
+
+    {
+        name    sim2Cells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 0.645 0.44) (1.6 1.175 0.88);
+    }
+    {
+        name    sim2;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim2Cells;
+    }
+
+    {
+        name    sim3Cells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 0.645 0.88) (1.6 1.175 1.32);
+    }
+    {
+        name    sim3;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim3Cells;
+    }
+
+    {
+        name    sim4Cells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 0.645 1.32) (1.6 1.175 1.76);
+    }
+    {
+        name    sim4;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim4Cells;
+    }
+
+    {
+        name    rackMidCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (0.6 0.645 0) (1.6 1.175 1.76);
+    }
+    {
+        name    rackMid;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     rackMidCells;
+    }
+
+    // Impermeable floors between stacked mid sims
+    {
+        name    floor_s2Faces;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (0.6 0.645 0.439) (1.6 1.175 0.441);
+    }
+    {
+        name    floor_s2;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet floor_s2Faces;
+    }
+
+    {
+        name    floor_s3Faces;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (0.6 0.645 0.879) (1.6 1.175 0.881);
+    }
+    {
+        name    floor_s3;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet floor_s3Faces;
+    }
+
+    {
+        name    floor_s4Faces;
+        type    faceSet;
+        action  new;
+        source  boxToFace;
+        box     (0.6 0.645 1.319) (1.6 1.175 1.321);
+    }
+    {
+        name    floor_s4;
+        type    faceZoneSet;
+        action  new;
+        source  setToFaceZone;
+        faceSet floor_s4Faces;
+    }
+
+    // Fan zones at rack exits (hot-aisle face), paper §3 / Nelson 2007.
+    // Thin slice x=1.55–1.60 (5 cm) — forcing at exit, not whole porous volume.
+    {
+        name    sim1FanCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.55 0.645 0.0) (1.6 1.175 0.44);
+    }
+    {
+        name    sim1Fan;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim1FanCells;
+    }
+    {
+        name    sim2FanCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.55 0.645 0.44) (1.6 1.175 0.88);
+    }
+    {
+        name    sim2Fan;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim2FanCells;
+    }
+    {
+        name    sim3FanCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.55 0.645 0.88) (1.6 1.175 1.32);
+    }
+    {
+        name    sim3Fan;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim3FanCells;
+    }
+    {
+        name    sim4FanCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.55 0.645 1.32) (1.6 1.175 1.76);
+    }
+    {
+        name    sim4Fan;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     sim4FanCells;
+    }
+    {
+        name    rackLeftFanCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.55 0 0) (1.6 0.645 1.76);
+    }
+    {
+        name    rackLeftFan;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     rackLeftFanCells;
+    }
+    {
+        name    rackRightFanCells;
+        type    cellSet;
+        action  new;
+        source  boxToCell;
+        box     (1.55 1.175 0) (1.6 1.82 1.76);
+    }
+    {
+        name    rackRightFan;
+        type    cellZoneSet;
+        action  new;
+        source  setToCellZone;
+        set     rackRightFanCells;
+    }
+);
+
+
+// ************************************************************************* //

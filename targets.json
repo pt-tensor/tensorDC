@@ -1,0 +1,84 @@
+{
+  "paper": {
+    "citation": "Saiyad, Fulpagare & Bhargav, Building Simulation 15:1595–1610 (2022)",
+    "doi": "10.1007/s12273-021-0879-3",
+    "facility": "CEETHERM / Fulpagare et al. 3-rack domain"
+  },
+  "operating_point": {
+    "T_supply_C": 17.0,
+    "U_tile_m_s": 1.54,
+    "Q_simulator_W_each": 2500,
+    "Q_simulator_rack_W_total": 10000,
+    "Q_neighbour_rack_W": 10000,
+    "porous_viscous_kg_m3s": 0.5,
+    "porous_inertial_kg_m4": 0.05,
+    "porosity": 0.85
+  },
+  "acceptance": {
+    "mean_Tin_Tout_abs_error_C": 1.4,
+    "comment": "Paper: DES and k-ε average rack Tin/Tout within ~1.4 °C of experiment"
+  },
+  "beta_index": {
+    "definition": "beta(z) = (T_in(z) - T_sup) / (T_out - T_sup)",
+    "experiment": {
+      "s1": 0.15,
+      "s4": 0.48
+    },
+    "paper_kEpsilon": {
+      "s1": 0.0,
+      "s4": 0.35
+    },
+    "paper_DES": {
+      "s4": 0.51
+    }
+  },
+  "RTI_percent": {
+    "paper_kEpsilon": 195,
+    "paper_DES": 216,
+    "experiment": null
+  },
+  "SHI": {
+    "comment": "Absolute experimental SHI not tabulated; k-ε under-predicted SHI by 43.5% vs experiment, DES by 26%",
+    "kEpsilon_underprediction_vs_exp_percent": 43.5,
+    "DES_underprediction_vs_exp_percent": 26.0
+  },
+  "digitized_experiment": {
+    "source_dir": "References/Airflow-CFD/Data-Comparison of detached eddy simulation and standard k−ε RANS model for rack-level airflow analysis inside a data center",
+    "case_copies": "Reports/data/experiment/",
+    "fig4_Tin_profile_C": {
+      "comment": "8 sensors uniformly z=(i-0.5)/8*Zmax, Zmax=1.98 m (inlet→ceiling)",
+      "1": 17.209,
+      "2": 17.320,
+      "3": 17.256,
+      "4": 17.675,
+      "5": 18.921,
+      "6": 19.407,
+      "7": 19.812,
+      "8": 20.231
+    },
+    "fig5_C": {
+      "Sim4_inlet": 19.832,
+      "Sim2_inlet": 17.754,
+      "Tin_avg": 18.717,
+      "Tout_avg": 24.360
+    },
+    "fig8a_Tin_C": {
+      "s1": 17.475,
+      "s2": 17.074,
+      "s3": 19.989,
+      "s4": 20.038
+    },
+    "fig8b_Tout_C": {
+      "s1": 25.313,
+      "s2": 27.065,
+      "s3": 25.129,
+      "s4": 22.536
+    }
+  },
+  "notes": [
+    "Digitized Fig.4/5/8 experiment → Reports/data/experiment/; live SVGs via ./ensure-svg-watch",
+    "Fans: meanVelocityForce Ubar=(1.5 0 0) on mid sims only (neighbours passive) — avoids cold-aisle over-suction",
+    "Turbulence: RNGkEpsilon + nutUSpaldingWallFunction (HVAC GIT/nielsen reference); paper RANS was standard k-ε",
+    "DES companion case TBD"
+  ]
+}
