@@ -1,6 +1,0 @@
-#!/bin/bash
-cd "${0%/*}" || exit 1
-foamListTimes -rm 2>/dev/null || true
-rm -rf processor* postProcessing VTK
-rm -f log.buoyantBoussinesqSimpleFoam log.decomposePar log.reconstructPar
-echo "Results cleaned (mesh kept)"
