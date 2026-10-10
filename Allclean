@@ -1,0 +1,8 @@
+#!/bin/bash
+cd "${0%/*}" || exit 1
+foamListTimes -rm 2>/dev/null || true
+rm -rf processor* postProcessing VTK constant/polyMesh
+rm -f log.* *.foam
+rm -rf 0
+cp -r 0.orig 0
+echo "Allclean done; 0/ restored from 0.orig/"

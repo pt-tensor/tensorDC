@@ -1,0 +1,60 @@
+#!/bin/bash
+set -euo pipefail
+cd "${0%/*}" || exit 1
+
+CASE="$(pwd)"
+REPO="$CASE"
+while [ "$REPO" != "/" ] && [ ! -f "$REPO/openfoam-docker" ]; do
+    REPO="$(dirname "$REPO")"
+done
+CASE_REL="${CASE#"$REPO"/}"
+
+if ! command -v buoyantBoussinesqSimpleFoam >/dev/null 2>&1; then
+    if [ ! -f "$REPO/openfoam-docker" ]; then
+        echo "ERROR: OpenFOAM not in PATH and no openfoam-docker found"
+        exit 1
+    fi
+    echo "OpenFOAM not in PATH — launching via openfoam-docker …"
+    exec "$REPO/openfoam-docker" -dir="$REPO" -c "cd /home/openfoam/${CASE_REL} && ./Run"
+fi
+
+if [ ! -d constant/polyMesh ]; then
+    echo "No mesh — run ./buildMesh first"
+    exit 1
+fi
+
+if [ ! -d 0 ]; then
+    cp -r 0.orig 0
+fi
+
+NP="${NP:-8}"
+
+# Host SVG watcher: residuals + Fig.4/5/8 validation every 100 iterations.
+# Disable with SVG_WATCH=0. Inside docker this only prints a reminder.
+if [ "${SVG_WATCH:-1}" != "0" ] && [ -x "$CASE/ensure-svg-watch" ]; then
+    "$CASE/ensure-svg-watch" --background || true
+fi
+
+# Always re-decompose so processor meshes match constant/polyMesh
+# (stale processor* after createBaffles/rebuild caused reconstructPar crash).
+if [ "$NP" -gt 1 ]; then
+    rm -rf processor*
+    decomposePar -force 2>&1 | tee log.decomposePar
+    : > log.buoyantBoussinesqSimpleFoam
+    mpirun -np "$NP" buoyantBoussinesqSimpleFoam -parallel 2>&1 | tee -a log.buoyantBoussinesqSimpleFoam
+    reconstructPar -latestTime 2>&1 | tee log.reconstructPar
+else
+    rm -rf processor*
+    : > log.buoyantBoussinesqSimpleFoam
+    buoyantBoussinesqSimpleFoam 2>&1 | tee -a log.buoyantBoussinesqSimpleFoam
+fi
+
+if [ "${SVG_WATCH:-1}" != "0" ] && [ -f Reports/scripts/update_live_svgs.py ]; then
+    if [ ! -f /.dockerenv ] && command -v python3 >/dev/null 2>&1; then
+        python3 Reports/scripts/update_live_svgs.py --force || true
+    fi
+fi
+
+echo "Saiyad2022_rackLevel run finished."
+echo "Post-process: python3 validation/metrics.py"
+echo "Live SVGs: Reports/figures/{residuals,cold_aisle_Tin_profile,rack_T_locations,Tin_by_simulator,Tout_by_simulator,Tin_Tout_history}.svg"
