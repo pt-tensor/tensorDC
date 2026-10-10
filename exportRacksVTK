@@ -1,0 +1,43 @@
+#!/bin/bash
+# Export porous rack cellZones to VTK for ParaView (racks are not solid walls).
+set -euo pipefail
+cd "${0%/*}/.." || exit 1
+
+CASE="$(pwd)"
+REPO="$CASE"
+while [ "$REPO" != "/" ] && [ ! -f "$REPO/openfoam-docker" ]; do
+    REPO="$(dirname "$REPO")"
+done
+CASE_REL="${CASE#"$REPO"/}"
+
+run_foam() {
+    if command -v foamToVTK >/dev/null 2>&1; then
+        "$@"
+    else
+        docker run --rm -i --user="$(id -u):$(id -g)" \
+            --volume="$REPO:/home/openfoam" \
+            opencfd/openfoam-run:latest \
+            -c "cd /home/openfoam/${CASE_REL} && $*"
+    fi
+}
+
+if [ ! -d constant/polyMesh ]; then
+    echo "No mesh — run ./buildMesh first"
+    exit 1
+fi
+
+mkdir -p VTK
+rm -rf VTK/rack*
+
+for z in rackLeft rackRight sim1 sim2 sim3 sim4 rackMid; do
+    run_foam foamToVTK -cellZone "$z" -latestTime -ascii || true
+done
+
+python3 scripts/write_rack_stl.py
+
+echo ""
+echo "Racks are POROUS cellZones inside the fluid box (paper model) — not solid walls."
+echo "Open in ParaView:"
+echo "  1) Saiyad2022_rackLevel.foam  → Mesh Regions: enable Cell Zones (rackLeft/Mid/Right)"
+echo "  2) OR load geometry/racks.stl as Outline / Wireframe overlay"
+echo "  3) OR load VTK/ from foamToVTK"
